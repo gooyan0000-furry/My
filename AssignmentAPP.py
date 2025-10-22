@@ -1,3 +1,18 @@
+import os
+import subprocess
+import sys
+
+def install_from_requirements():
+    requirements_file = 'requirements.txt'
+    if os.path.exists(requirements_file):
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_file])
+            print("Suceess")
+        except subprocess.CalledProcessError as e:
+            print(f"Failure: {e}")
+
+install_from_requirements()
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,23 +21,21 @@ import numpy as np
 
 # Set page configuration
 st.set_page_config(
-    page_title="Titanic Data Analysis",
+    page_title="Titanic Data Analysis by DingWenhan",
     page_icon="🚢",
     layout="wide"
 )
 
-# Create sample data (if file does not exist)
 @st.cache_data
 def load_data():
     try:
-        # Try to read local file
         df = pd.read_csv('train.csv')
-        st.success("✅ Successfully loaded local data file")
+        st.success("✅ Successfully loaded data from local file")
     except:
-        st.warning("⚠️ Local data file not found, using sample data")
-        # Create sample data
+        st.warning("⚠️ Unsuccessful loading data from local file.")
         np.random.seed(42)
         n_passengers = 891
+        
         data = {
             'PassengerId': range(1, n_passengers + 1),
             'Survived': np.random.choice([0, 1], n_passengers, p=[0.6, 0.4]),
@@ -35,176 +48,169 @@ def load_data():
         df = pd.DataFrame(data)
         df['Age'] = df['Age'].round(1)
         df['Fare'] = df['Fare'].round(2)
-        return df
+    
+    return df
 
-# Load data
 df = load_data()
 
-# Main title
 st.title("🚢 Titanic Data Analysis App")
-st.markdown("**Developed by: Wenhan Ding**")
+st.markdown("Developed by: DingWenhan")  # 请替换为您的姓名
 
-# Display basic information of data
 st.sidebar.title("🔍 Navigation")
 st.sidebar.info("Select an analysis type from the dropdown below")
+
 analysis_type = st.sidebar.selectbox(
-    "Select Analysis Type",
+    "Choose Analaysis Type",
     [
-        "Data Overview",
-        "Embarkation Port Analysis",
-        "Gender Survival Analysis",
-        "Fare Analysis",
-        "Passenger Class Survival Analysis",
+        "Data Overview", 
+        "Embarkation Analysis", 
+        "Gender Survival Analysis", 
+        "Fare Analysis", 
+        "Cabin Class Survival Analysis",
         "Detailed Distribution Analysis"
+        "Passenger Survival Rate according to Pclass",
+        "Detailed Passenger Analysis"
     ]
 )
 
-# 1. Data Overview
+# 1. 数据概览
 if analysis_type == "Data Overview":
-    st.header("📊 Data Set Overview")
-
-    # Key metrics
+    st.header("📊 Data Overview")
+    
+    # 关键指标
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         total_passengers = len(df)
         st.metric("Total Passengers", total_passengers)
-
+    
     with col2:
         survival_rate = df['Survived'].mean() * 100
-        st.metric("Overall Survival Rate", f"{survival_rate:.1f}%")
-
+        st.metric("Survival Rate", f"{survival_rate:.1f}%")
+    
     with col3:
         avg_age = df['Age'].mean()
-        st.metric("Average Age", f"{avg_age:.1f} years")
-
+        st.metric("Average Age", f"{avg_age:.1f} years old")
+    
     with col4:
         avg_fare = df['Fare'].mean()
         st.metric("Average Fare", f"${avg_fare:.2f}")
-
-    # Data preview
-    st.subheader("Data Preview")
+    
+    st.subheader("Overview of the Data")
     st.dataframe(df.head(8), use_container_width=True)
-
-    # Data set information
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
-        st.subheader("Data Set Information")
-        st.write(f"**Data Shape:** {df.shape[0]} rows × {df.shape[1]} columns")
-        st.write("**Column Names:**", list(df.columns))
-
+        st.subheader("Data Type")
+        st.write(f"**Shape:** {df.shape[0]} rows × {df.shape[1]} columns")
+        st.write("**Columns:**", list(df.columns))
+    
     with col2:
-        st.subheader("Data Types")
+        st.subheader("Data Type")
         st.write(df.dtypes)
 
-# 2. Embarkation Port Analysis
-elif analysis_type == "Embarkation Port Analysis":
-    st.header("🌊 Embarkation Port Analysis")
 
-    # Calculate embarkation statistics
+elif analysis_type == "Embarkation Analysis":
+    st.header("🌊 Embarkation Analysis")
+    
     embarkation_stats = df['Embarked'].value_counts()
     embarkation_percentages = (df['Embarked'].value_counts(normalize=True) * 100).round(1)
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
-        st.subheader("Passenger Distribution by Port")
-
+        st.subheader("Port Passenger Distribution")
+        
         port_names = {'S': 'Southampton', 'C': 'Cherbourg', 'Q': 'Queenstown'}
-
+        
         for port in ['S', 'C', 'Q']:
             count = embarkation_stats.get(port, 0)
             percentage = embarkation_percentages.get(port, 0)
             st.metric(
                 label=f"{port} ({port_names.get(port, 'Unknown')})",
-                value=f"{count} passengers",
+                value=f"{count} 人",
                 delta=f"{percentage}%"
             )
-
+    
     with col2:
-        st.subheader("Visualization Chart")
+        st.subheader("Port Passenger Distribution Graphs")
         fig, ax = plt.subplots(figsize=(10, 6))
-
+        
         ports = ['Southampton (S)', 'Cherbourg (C)', 'Queenstown (Q)']
         counts = [embarkation_stats.get('S', 0), embarkation_stats.get('C', 0), embarkation_stats.get('Q', 0)]
-
+        
         bars = ax.bar(ports, counts, color=['#3498db', '#e74c3c', '#2ecc71'], alpha=0.8)
-        ax.set_title('Passenger Count by Embarkation Port', fontsize=14, fontweight='bold')
-        ax.set_ylabel('Passenger Count')
-
-        # Add value labels to bars
+        ax.set_title('Port Passenger Distribution', fontsize=14, fontweight='bold')
+        ax.set_ylabel('Numbers of Passengers')
+        
         for bar, count in zip(bars, counts):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 5,
-                    f'{count}', ha='center', va='bottom', fontweight='bold')
-
+                   f'{count}', ha='center', va='bottom', fontweight='bold')
+        
         plt.xticks(rotation=45)
         st.pyplot(fig)
 
-# 3. Gender Survival Analysis
 elif analysis_type == "Gender Survival Analysis":
     st.header("🚻 Gender Survival Analysis")
-
-    # Calculate survival rate by gender
+    
     survival_by_gender = df.groupby('Sex')['Survived'].agg(['mean', 'count', 'sum'])
     survival_by_gender['survival_rate'] = (survival_by_gender['mean'] * 100).round(1)
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
-        st.subheader("Survival Statistics")
-
+        st.subheader("Gender Survival Rate")
+        
         for gender in survival_by_gender.index:
             rate = survival_by_gender.loc[gender, 'survival_rate']
             survived = int(survival_by_gender.loc[gender, 'sum'])
             total = int(survival_by_gender.loc[gender, 'count'])
-
+            
             gender_display = "Male" if gender == 'male' else "Female"
             st.metric(
                 label=f"{gender_display} Survival Rate",
                 value=f"{rate}%",
-                delta=f"{survived}/{total} passengers survived"
+                delta=f"{survived}/{total} Passengers Survived"
             )
-
+    
     with col2:
-        st.subheader("Survival Rate Comparison")
+        st.subheader("Gender Survival Rate Graphs")
         fig, ax = plt.subplots(figsize=(8, 6))
-
+        
         genders = ['Male', 'Female']
         rates = [
             survival_by_gender.loc['male', 'survival_rate'],
             survival_by_gender.loc['female', 'survival_rate']
         ]
-
+        
         bars = ax.bar(genders, rates, color=['#3498db', '#e84393'], alpha=0.8)
-        ax.set_title('Survival Rate by Gender', fontsize=14, fontweight='bold')
+        ax.set_title('Gender Survival Rate', fontsize=14, fontweight='bold')
         ax.set_ylabel('Survival Rate (%)')
         ax.set_ylim(0, 100)
-
-        # Add value labels
+        
         for bar, rate in zip(bars, rates):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
-                    f'{rate}%', ha='center', va='bottom', fontweight='bold')
-
+                   f'{rate}%', ha='center', va='bottom', fontweight='bold')
+        
         st.pyplot(fig)
 
-# 4. Fare Analysis
 elif analysis_type == "Fare Analysis":
     st.header("💰 Fare Analysis")
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
         st.subheader("Fare Statistics")
-
+        
         st.metric("Highest Fare", f"${df['Fare'].max():.2f}")
         st.metric("Lowest Fare", f"${df['Fare'].min():.2f}")
         st.metric("Average Fare", f"${df['Fare'].mean():.2f}")
         st.metric("Median Fare", f"${df['Fare'].median():.2f}")
-
+    
     with col2:
         st.subheader("Fare Distribution Control")
-
+        
         fare_range = st.slider(
             "Select Fare Range",
             min_value=0.0,
@@ -212,143 +218,124 @@ elif analysis_type == "Fare Analysis":
             value=(0.0, 100.0),
             step=5.0
         )
-
-        # Filter data based on selection
+        
         filtered_fares = df[(df['Fare'] >= fare_range[0]) & (df['Fare'] <= fare_range[1])]['Fare']
-        st.write(f"**Selected Range Passenger Count:** {len(filtered_fares)} passengers")
-        st.write(f"**Selected Range Average Fare:** ${filtered_fares.mean():.2f}")
-
-    # Fare distribution histogram
-    st.subheader("Fare Distribution Histogram")
+        
+        st.write(f"** Selected:** {len(filtered_fares)} 人")
+        st.write(f"** Average Fare:** ${filtered_fares.mean():.2f}")
+    
+    
+    st.subheader("Fare Distribution")
     fig, ax = plt.subplots(figsize=(12, 6))
-
+    
     ax.hist(df['Fare'], bins=50, color='#9b59b6', alpha=0.7, edgecolor='black')
     ax.set_title('Fare Distribution', fontsize=14, fontweight='bold')
     ax.set_xlabel('Fare ($)')
-    ax.set_ylabel('Passenger Count')
+    ax.set_ylabel('Number of Passengers')
     ax.grid(True, alpha=0.3)
-
+    
     st.pyplot(fig)
 
-# 5. Passenger Class Survival Analysis
-elif analysis_type == "Passenger Class Survival Analysis":
-    st.header("🎫 Passenger Class Survival Analysis")
-
-    # Calculate survival rate by passenger class
+elif analysis_type == "Cabin Class Survival Analysis":
+    st.header("🎫 Cabin Class Survival Analysis")
     survival_by_class = df.groupby('Pclass')['Survived'].mean() * 100
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
-        st.subheader("Survival Rate by Class")
-
+        st.subheader("Cabin Class Survival Rate")
+        
         for pclass in sorted(survival_by_class.index):
             rate = survival_by_class[pclass]
             class_data = df[df['Pclass'] == pclass]
             survived = class_data['Survived'].sum()
             total = len(class_data)
-
+            
             st.metric(
                 label=f"{pclass} Class Survival Rate",
                 value=f"{rate:.1f}%",
-                delta=f"{survived}/{total} passengers survived"
+                delta=f"{survived}/{total} Passengers Survived"
             )
 
-        # Find the class with the highest survival rate
         best_class = survival_by_class.idxmax()
         best_rate = survival_by_class.max()
-        st.success(f"🎯 **Highest Survival Rate in {best_class} Class: {best_rate:.1f}%**")
-
+        st.success(f"🎯 **{best_class} Class** has the **highest survival rate: {best_rate:.1f}%**")
+    
     with col2:
-        st.subheader("Survival Rate Comparison Chart")
+        st.subheader("Cabin Class Survival Rate Graphs")
         fig, ax = plt.subplots(figsize=(8, 6))
-
-        classes = ['1 Class', '2 Class', '3 Class']
+        
+        classes = ['1 st Class', '2 nd Class', '3 rd Class']
         rates = [survival_by_class[1], survival_by_class[2], survival_by_class[3]]
         colors = ['#f1c40f', '#95a5a6', '#e67e22']
-
+        
         bars = ax.bar(classes, rates, color=colors, alpha=0.8)
-        ax.set_title('Survival Rate by Passenger Class', fontsize=14, fontweight='bold')
+        ax.set_title('Cabin Class Survival Rate', fontsize=14, fontweight='bold')
         ax.set_ylabel('Survival Rate (%)')
         ax.set_ylim(0, 100)
-
-        # Add value labels
+        
         for bar, rate in zip(bars, rates):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
-                    f'{rate:.1f}%', ha='center', va='bottom', fontweight='bold')
-
+                   f'{rate:.1f}%', ha='center', va='bottom', fontweight='bold')
+        
         st.pyplot(fig)
 
-# 6. Detailed Distribution Analysis
-elif analysis_type == "Detailed Distribution Analysis":
-    st.header("📈 Detailed Distribution Analysis")
 
-    # Calculate survival proportions for each (class, survival status) combination
+elif analysis_type == "Passenger Survival Rate according to Pclass":
+    st.header("📈 Passenger Survival Rate according to Pclass")
+    
     survival_proportions = pd.crosstab(df['Pclass'], df['Survived'], normalize='index')
-
     col1, col2 = st.columns(2)
-
+    
     with col1:
-        st.subheader("Survival Distribution within Each Class")
-
-        # Create proportion table
+        st.subheader("Survival Proportions")
         proportion_table = (survival_proportions * 100).round(1)
-        proportion_table.columns = ['Did Not Survive (%)', 'Survived (%)']
-        proportion_table.index = ['1 Class', '2 Class', '3 Class']
-
+        proportion_table.columns = ['Died (%)', 'Survived (%)']
+        proportion_table.index = ['1st Class', '2nd Class', '3rd Class']
         st.dataframe(proportion_table)
-        st.info("💡 **Note**: Each row sums to 100%, showing the survival distribution within each class")
-
+    
     with col2:
-        st.subheader("Stacked Bar Chart")
+        st.subheader("Survival Rate Graphs")
         fig, ax = plt.subplots(figsize=(10, 6))
-
         survival_proportions.plot(kind='bar', stacked=True, ax=ax,
-                                  color=['#e74c3c', '#2ecc71'], alpha=0.8)
-        ax.set_title('Survival Distribution by Passenger Class', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Passenger Class')
+                                 color=['#e74c3c', '#2ecc71'], alpha=0.8)
+        ax.set_title('Passenger Survival Rate according to Pclass', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Pclass')
         ax.set_ylabel('Proportion')
-        ax.legend(['Did Not Survive', 'Survived'])
+        ax.legend(['Died', 'Survived'])
         plt.xticks(rotation=0)
-
         st.pyplot(fig)
-
-    # Detailed bar chart
-    st.subheader("Detailed Distribution Bar Chart")
-
-    # Prepare data
+    
+    st.subheader("Details of Survival Rate")
+    
     categories = []
     values = []
-
+    
     for pclass in [1, 2, 3]:
         for survived in [0, 1]:
             categories.append(f'({pclass}, {survived})')
             values.append(survival_proportions.loc[pclass, survived])
-
+    
     fig, ax = plt.subplots(figsize=(12, 6))
     colors = ['#e74c3c' if i % 2 == 0 else '#2ecc71' for i in range(len(categories))]
-
+    
     bars = ax.bar(categories, values, color=colors, alpha=0.8, edgecolor='black')
-    ax.set_title('Proportion of Each (Class, Survival Status) Combination', fontsize=14, fontweight='bold')
-    ax.set_xlabel('(Passenger Class, Survival Status)')
+    ax.set_title('Passenger Survival Rate according to Pclass', fontsize=14, fontweight='bold')
+    ax.set_xlabel('(Pclass, Survived)')
     ax.set_ylabel('Proportion')
     ax.set_ylim(0, 1.0)
-
-    # Add value labels
+    
     for bar, value in zip(bars, values):
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                f'{value:.2f}', ha='center', va='bottom', fontweight='bold')
-
+               f'{value:.2f}', ha='center', va='bottom', fontweight='bold')
+    
     st.pyplot(fig)
 
-# Footer
-st.sidebar.markdown("---")
-st.sidebar.info(
-    "📖 **About This App**:\n"
-    "This is a Titanic data analysis app, used to explore passenger demographics, "
-    "survival patterns and other interesting insights."
-)
 
-# Display data source in the sidebar
 st.sidebar.markdown("---")
-st.sidebar.caption("Data Source: Titanic dataset")
+st.sidebar.markdown("## About the App")
+st.sidebar.markdown("This app is developed by DingWenhan for the Titanic dataset analysis. It is a simple and interactive tool for data exploration and analysis. The app is built using the Streamlit library in Python. The data is loaded from a local file and cached for better performance. The app is designed to be used as a standalone app or as a part of a larger data analysis project. The app is open-source and available on GitHub. You can find the source code and instructions on how to run the app on your machine in the following links:")
+st.sidebar.markdown("- [GitHub Repository](https://github.com/dingwenhan/Titanic-Data-Analysis-App)")
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Sources: Titanic dataset")
