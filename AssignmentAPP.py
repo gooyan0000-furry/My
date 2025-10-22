@@ -129,7 +129,7 @@ elif analysis_type == "Embarkation Analysis":
             percentage = embarkation_percentages.get(port, 0)
             st.metric(
                 label=f"{port} ({port_names.get(port, 'Unknown')})",
-                value=f"{count} 人",
+                value=f"{count} Passengers",
                 delta=f"{percentage}%"
             )
     
@@ -221,7 +221,7 @@ elif analysis_type == "Fare Analysis":
         
         filtered_fares = df[(df['Fare'] >= fare_range[0]) & (df['Fare'] <= fare_range[1])]['Fare']
         
-        st.write(f"** Selected:** {len(filtered_fares)} 人")
+        st.write(f"** Selected:** {len(filtered_fares)} passengers")
         st.write(f"** Average Fare:** ${filtered_fares.mean():.2f}")
     
     
