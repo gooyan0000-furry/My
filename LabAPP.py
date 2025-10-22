@@ -1,3 +1,16 @@
+import sys
+
+def install_from_requirements():
+    requirements_file = 'requirements.txt'
+    if os.path.exists(requirements_file):
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_file])
+        except subprocess.CalledProcessError as e:
+            print(f"安装依赖失败: {e}")
+
+# 可选：在开发时自动安装
+install_from_requirements()
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
