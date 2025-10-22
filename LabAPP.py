@@ -7,6 +7,7 @@ import numpy as np
 import os
 
 def install_from_requirements():
+    import os
     requirements_file = 'requirements.txt'
     if os.path.exists(requirements_file):
         try:
