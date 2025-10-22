@@ -1,4 +1,5 @@
 import sys
+import subprocess
 
 def install_from_requirements():
     requirements_file = 'requirements.txt'
