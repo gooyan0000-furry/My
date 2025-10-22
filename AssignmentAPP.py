@@ -335,7 +335,7 @@ elif analysis_type == "Passenger Survival Rate according to Pclass":
 st.sidebar.markdown("---")
 st.sidebar.markdown("## About the App")
 st.sidebar.markdown("This app is developed by DingWenhan for the Titanic dataset analysis. It is a simple and interactive tool for data exploration and analysis. The app is built using the Streamlit library in Python. The data is loaded from a local file and cached for better performance. The app is designed to be used as a standalone app or as a part of a larger data analysis project. The app is open-source and available on GitHub. You can find the source code and instructions on how to run the app on your machine in the following links:")
-st.sidebar.markdown("- [GitHub Repository](https://github.com/dingwenhan/Titanic-Data-Analysis-App)")
+st.sidebar.markdown("- [GitHub Repository](https://github.com/gooyan0000-furry/My)")
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Sources: Titanic dataset")
