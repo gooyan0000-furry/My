@@ -1,10 +1,6 @@
 import sys
 import subprocess
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import os
+
 
 def install_from_requirements():
     import os
@@ -18,6 +14,11 @@ def install_from_requirements():
 # 可选：在开发时自动安装
 install_from_requirements()
 
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 st.set_page_config(page_title="California Housing Data", layout="wide")
 
